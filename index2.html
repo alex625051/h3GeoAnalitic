@@ -27,9 +27,11 @@ function init()
         geoObjectOpenBalloonOnClick: false,
 		geoObjectStrokeColor: "2222ff",
         geoObjectStrokeOpacity: 1,
+        //geoObjectFill: false,
         geoObjectFill: false,
-        geoObjectOpacity: 0.1,
-        geoObjectFillColor: "020202",
+        //geoObjectOpacity: 0.1,
+        geoObjectOpacity: 0.7,
+        geoObjectFillColor: "aaaaff",
 		
 
 		
@@ -37,5 +39,11 @@ function init()
     });
     // Добавим менеджер на карту.
     myMap.geoObjects.add(remoteObjectManager);
+//    remoteObjectManager.objects.events.add(['mouseenter', 'mouseleave'], function (e) {
+//        e.get('target').options.set(
+//          'opacity',
+//          e.get('type') == 'mouseenter' ? 1 : 0
+//        );
+//    });
 }
 </script>

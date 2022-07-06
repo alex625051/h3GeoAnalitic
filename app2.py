@@ -14,10 +14,13 @@ CORS(app)
 
 
 ya_h3_zoom = {
-    "3":[0,1,2], "4":[2], "5":[2], "6":[2], "7":[2], "8":[2], "9":[2], "10":[2], "11":[2], "12":[2],
-    "13":[2], "14":[2], "15":[2], "16":[2], "17":[2], "18":[2], "19":[2], "20":[2], "21":[2]
+    "3":[1,2], "4":[2,3], "5":[3,4], "6":[3,4], "7":[4,5], "8":[6,7], "9":[6,7], "10":[7,8], "11":[8,9], "12":[8,9],
+    "13":[9,10], "14":[10,11], "15":[10,11], "16":[11,12], "17":[12,13], "18":[12,13], "19":[13,14], "20":[14,15], "21":[14,15]
 }
-
+ya_h3_zoom = {
+    "3":[1], "4":[1], "5":[1,2], "6":[2,3], "7":[3,4], "8":[3,4], "9":[4,5], "10":[5,6], "11":[6,7], "12":[6,7],
+    "13":[7,8], "14":[8,9], "15":[8,9], "16":[9,10], "17":[10,11], "18":[11,12], "19":[11,12], "20":[12], "21":[12]
+}
 degree_1=111 #km
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -74,7 +77,7 @@ def create_hexagons(geoJson, h3zoom, ya_zoom):
     hexagons = list(h3.polyfill(geoJson, h3zoom))
     polygons=[]
     for hex in hexagons:
-        polygons.append( h3.h3_set_to_multi_polygon([hex], geo_json=False))
+        polygons.append( {"plgn":h3.h3_set_to_multi_polygon([hex], geo_json=False),"hex":hex,"h3zoom":h3zoom})
     return polygons
 
 
@@ -115,12 +118,18 @@ def rom(resp_string):
     for polygon in polygons:
         features.append({
       "type": "Feature",
-      "id": str(uuid.uuid4()),
+      "id": polygon['hex'],
       "geometry": {
-        "coordinates": polygon[0],
+        "coordinates": polygon['plgn'][0],
         "type": "Polygon"
       },
+        "properties":{
+                "hintContent": polygon['hex'],
+                "balloonContent": polygon['hex']
+            },
             "options":{
+                "zIndex": 30+polygon['h3zoom']
+
                 # "fillColor":"020202",
                 # "opacity":0.1,
                 # "fill":  False,
