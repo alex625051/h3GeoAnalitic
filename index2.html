@@ -1,0 +1,31 @@
+
+
+
+
+<!--
+        Укажите свой API-ключ. Тестовый ключ НЕ БУДЕТ работать на других сайтах.
+        Получить ключ можно в Кабинете разработчика: https://developer.tech.yandex.ru/keys/
+    -->
+<script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=60445215-6d3a-4f88-87fe-8d52b72e5bc9"></script>
+<div id="map" style='width: 100%; height: 100%;padding: 0; margin: 0;'></div>
+
+<script>
+
+ymaps.ready(init);
+function init()
+{
+    var myMap = new ymaps.Map('map', { center: [48.954206, 21.259468], zoom: 5 }, { controls: [] });
+
+    var remoteObjectManager = new ymaps.RemoteObjectManager('http://127.0.0.1:5000/rom/%b/%z',
+    {
+		options: {splitRequests:true},
+		splitRequests:true,
+        // Опции кластеров задаются с префиксом cluster.
+        clusterHasBalloon: false,
+        // Опции объектов задаются с префиксом geoObject.
+        geoObjectOpenBalloonOnClick: false
+    });
+    // Добавим менеджер на карту.
+    myMap.geoObjects.add(remoteObjectManager);
+}
+</script>
