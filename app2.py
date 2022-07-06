@@ -32,7 +32,18 @@ redGradient= [
 'f83641',
 'ef0324',
 ]
-
+blueGradient = [
+'a8a6f4',
+'9995ed',
+'8a85e5',
+'7b74dd',
+'6c63d5',
+'5d53cc',
+'4e42c3',
+'3d31ba',
+'2a1eb1',
+'0c04a7'
+]
 
 ya_h3_zoom = {
     "3":[1,2], "4":[2,3], "5":[3,4], "6":[3,4], "7":[4,5], "8":[6,7], "9":[6,7], "10":[7,8], "11":[8,9], "12":[8,9],
@@ -51,10 +62,15 @@ degree_1=111 #km
 
 def generataData():
     dataSet = []
-    for i in range(0, 2000000):
+    for i in range(0, 20000):
         dataSet.append({
             "lon": random.uniform(40, 60),
             "lat": random.uniform(40, 60),
+            "worker_id": uuid.uuid4()
+        })
+        dataSet.append({
+            "lon": random.uniform(45, 46),
+            "lat": random.uniform(45, 46),
             "worker_id": uuid.uuid4()
         })
     return dataSet
@@ -71,10 +87,11 @@ def generateClusters(dataSet, H3_zooms):
             hxgn=h3.geo_to_h3(lat=point['lat'], lng=point['lon'], resolution=H3_zoom)
             if not hxgn in clusters[H3_zoom]:
                 clusters[H3_zoom][hxgn] =1
+                # maxesOfH3Layers[H3_zoom]['max'] = maxesOfH3Layers[H3_zoom].get('max', 0) + 1 # От количества полигонов закрашенных
             else:
                 clusters[H3_zoom][hxgn] = clusters[H3_zoom][hxgn] + 1
             if clusters[H3_zoom][hxgn] > maxValue: maxValue = clusters[H3_zoom][hxgn]
-            maxesOfH3Layers[H3_zoom]['max']=maxesOfH3Layers[H3_zoom].get('max',0)+1
+            maxesOfH3Layers[H3_zoom]['max']=maxesOfH3Layers[H3_zoom].get('max',0)+1 # от количества точек
         maxesOfH3Layers[H3_zoom]['colorW'] = (len(redGradient)-1) / (maxesOfH3Layers[H3_zoom]['max'])
 
 
@@ -184,16 +201,17 @@ def rom(resp_string):
     # len_redGradient=len(redGradient)
     # colorW=(len(redGradient)-1)/maxValue
     for polygon in polygons:
+        asses = 0
         h3_zoom= polygon['h3zoom']
         fill = False;
         colorW = maxesOfH3Layers[h3_zoom]["colorW"]
         strokeColor = "2222ff";
         strokeWidth = 1
         color = "aaaaff"
-
+        colorI = int(asses * colorW)
+        strokeColor = blueGradient[colorI]
         if not polygon['hex'] in clusters[polygon['h3zoom']]:
             fill=False;
-            asses=0
             if not renderAllHexs:
                 continue
         else:
@@ -203,9 +221,7 @@ def rom(resp_string):
                 color= redGradient[colorI]
                 fill = True;
             if h3_zoom == ya_h3_zoom[ya_zoom][0]:
-                colorI = int(asses * colorW)
-                strokeWidth = 3
-                strokeColor = redGradient[colorI]
+                strokeWidth = 5
 
         features.append({
       "type": "Feature",
