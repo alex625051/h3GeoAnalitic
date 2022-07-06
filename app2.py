@@ -51,7 +51,7 @@ degree_1=111 #km
 
 def generataData():
     dataSet = []
-    for i in range(0, 100000):
+    for i in range(0, 2000000):
         dataSet.append({
             "lon": random.uniform(40, 60),
             "lat": random.uniform(40, 60),
@@ -75,7 +75,7 @@ def generateClusters(dataSet, H3_zooms):
                 clusters[H3_zoom][hxgn] = clusters[H3_zoom][hxgn] + 1
             if clusters[H3_zoom][hxgn] > maxValue: maxValue = clusters[H3_zoom][hxgn]
             maxesOfH3Layers[H3_zoom]['max']=maxesOfH3Layers[H3_zoom].get('max',0)+1
-        maxesOfH3Layers[H3_zoom]['colorW'] = (len(redGradient)-1) / (maxesOfH3Layers[H3_zoom]['max'] or 1)
+        maxesOfH3Layers[H3_zoom]['colorW'] = (len(redGradient)-1) / (maxesOfH3Layers[H3_zoom]['max'])
 
 
     return clusters
@@ -184,12 +184,16 @@ def rom(resp_string):
     # len_redGradient=len(redGradient)
     # colorW=(len(redGradient)-1)/maxValue
     for polygon in polygons:
+        h3_zoom= polygon['h3zoom']
+        fill = False;
         colorW = maxesOfH3Layers[h3_zoom]["colorW"]
         strokeColor = "2222ff";
+        strokeWidth = 1
+        color = "aaaaff"
+
         if not polygon['hex'] in clusters[polygon['h3zoom']]:
             fill=False;
             asses=0
-            color = "ffffff"
             if not renderAllHexs:
                 continue
         else:
@@ -198,23 +202,22 @@ def rom(resp_string):
                 colorI = int(asses * colorW)
                 color= redGradient[colorI]
                 fill = True;
-            elif h3_zoom == ya_h3_zoom[ya_zoom][0]:
-                print("------------------------------------------------------------------")
+            if h3_zoom == ya_h3_zoom[ya_zoom][0]:
                 colorI = int(asses * colorW)
+                strokeWidth = 3
                 strokeColor = redGradient[colorI]
-                fill = False;
 
         features.append({
       "type": "Feature",
-      "id": polygon['hex'],
+      "id": str(uuid.uuid4()), #polygon['hex'],
       "geometry": {
         "coordinates": polygon['plgn'][0],
         "type": "Polygon"
       },
         "properties":{
                 # "hintContent": polygon['hex'],
-                "hintContent": f'ассайтов: {asses}',
-                "balloonContent": f'ассайтов: {asses}'
+                "hintContent": f'ассайтов: {asses}/{maxesOfH3Layers[h3_zoom]["max"]} <br />H3: {h3_zoom}',
+                # "balloonContent": f'ассайтов: {asses}'
             },
             "options":{
                 "zIndex": 30+polygon['h3zoom'],
@@ -222,8 +225,9 @@ def rom(resp_string):
                 "fillColor": color,
                 # "opacity":0.1,
                 "fill":  fill,
+                "strokeWidth": strokeWidth,
                 "strokeColor": strokeColor,
-                # "strokeOpacity":1
+                "strokeOpacity":1
             }
     })
     fc2={
@@ -248,6 +252,7 @@ def main():
     global clusters
     dataSet=generataData()
     clusters = generateClusters(dataSet, range(1,11))
+    print("Server started")
 
 if __name__ == '__main__':
     app.run(threadaded = True)
