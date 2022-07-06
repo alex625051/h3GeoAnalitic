@@ -12,6 +12,13 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+
+ya_h3_zoom = {
+    "3":[0,1,2], "4":[2], "5":[2], "6":[2], "7":[2], "8":[2], "9":[2], "10":[2], "11":[2], "12":[2],
+    "13":[2], "14":[2], "15":[2], "16":[2], "17":[2], "18":[2], "19":[2], "20":[2], "21":[2]
+}
+
+degree_1=111 #km
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -63,7 +70,7 @@ def fromPixelsToTileNumber (x, y):
     };
 
 
-def create_hexagons(geoJson, h3zoom, YmapZoom):
+def create_hexagons(geoJson, h3zoom, ya_zoom):
     hexagons = list(h3.polyfill(geoJson, h3zoom))
     polygons=[]
     for hex in hexagons:
@@ -99,40 +106,34 @@ def rom(resp_string):
         "coordinates": coordinates
     }
     polygons=[]
-    polygons=polygons+create_hexagons(geoJson, h3zoom=2, ya_zoom=2)
+    for h3_zoom in ya_h3_zoom[ya_zoom]:
+        polygons = polygons + create_hexagons(geoJson, h3_zoom, ya_zoom=ya_zoom)
+
+
+
     features=[]
     for polygon in polygons:
         features.append({
       "type": "Feature",
       "id": str(uuid.uuid4()),
       "geometry": {
-        "coordinates": polygon,
+        "coordinates": polygon[0],
         "type": "Polygon"
       },
-      "properties": {
-        "name": "Многоугольник 1"
-      }
+            "options":{
+                # "fillColor":"020202",
+                # "opacity":0.1,
+                # "fill":  False,
+                # "strokeColor":"0101ff",
+                # "strokeOpacity":1
+            }
     })
-
+    print(len(features))
     fc2={
   "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "id": str(uuid.uuid4()),
-      "geometry": {
-        "coordinates": coordinates,
-        "type": "Polygon"
-      },
-      "properties": {
-        "name": "Многоугольник 1"
-      }
-    }
-
-  ]
+  "features": features
 }
     ret= f'{callback_id}('+json.dumps(fc2)  + ')'
-    print(ret)
     response = Response(ret, mimetype='text/xml')
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')

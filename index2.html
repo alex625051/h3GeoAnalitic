@@ -14,16 +14,26 @@
 ymaps.ready(init);
 function init()
 {
-    var myMap = new ymaps.Map('map', { center: [48.954206, 21.259468], zoom: 5 }, { controls: [] });
+    var myMap = new ymaps.Map('map', { center: [48.954206, 21.259468], zoom: 5 }, { controls: [], minZoom: 3 });
 
     var remoteObjectManager = new ymaps.RemoteObjectManager('http://127.0.0.1:5000/rom/%b/%z',
     {
-		options: {splitRequests:true},
+		options: {splitRequests:true
+		},
 		splitRequests:true,
         // Опции кластеров задаются с префиксом cluster.
         clusterHasBalloon: false,
         // Опции объектов задаются с префиксом geoObject.
-        geoObjectOpenBalloonOnClick: false
+        geoObjectOpenBalloonOnClick: false,
+		geoObjectStrokeColor: "2222ff",
+        geoObjectStrokeOpacity: 1,
+        geoObjectFill: false,
+        geoObjectOpacity: 0.1,
+        geoObjectFillColor: "020202",
+		
+
+		
+		
     });
     // Добавим менеджер на карту.
     myMap.geoObjects.add(remoteObjectManager);
