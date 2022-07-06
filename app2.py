@@ -62,7 +62,7 @@ degree_1=111 #km
 
 def generataData():
     dataSet = []
-    for i in range(0, 20000):
+    for i in range(0, 1000000):
         dataSet.append({
             "lon": random.uniform(40, 60),
             "lat": random.uniform(40, 60),
