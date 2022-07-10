@@ -1,8 +1,5 @@
 import json
-import os.path
 import h3
-from io import BytesIO
-from PIL import Image, ImageDraw
 from flask import Flask, send_file, jsonify, make_response, request, current_app, Response
 from datetime import timedelta
 from functools import update_wrapper
@@ -44,25 +41,41 @@ blueGradient = [
 '2a1eb1',
 '0c04a7'
 ]
+superRedGradient = [
+'ec72ae',
+'df67a1',
+'d15b94',
+'c45087',
+'b7457b',
+'aa396f',
+'9d2e63',
+'902257',
+'84144c',
+'770241',
+
+
+]
 
 ya_h3_zoom = {
     "3":[1,2], "4":[2,3], "5":[3,4], "6":[3,4], "7":[4,5], "8":[6,7], "9":[6,7], "10":[7,8], "11":[8,9], "12":[8,9],
     "13":[9,10], "14":[10,11], "15":[10,11], "16":[11,12], "17":[12,13], "18":[12,13], "19":[13,14], "20":[14,15], "21":[14,15]
 }
-ya_h3_zoom = {
-    "3":[1], "4":[1], "5":[1,2], "6":[2,3], "7":[3,4], "8":[3,4], "9":[4,5], "10":[5,6], "11":[6,7], "12":[6,7],
-    "13":[7,8], "14":[8,9], "15":[8,9], "16":[9,10], "17":[10,11], "18":[11,12], "19":[11,12], "20":[12], "21":[12]
-}
+
 
 ya_h3_zoom = {
     "3":[1], "4":[1], "5":[1,2,3], "6":[2,3,4], "7":[3,4,5], "8":[3,4,5], "9":[4,5,6], "10":[5,6,7], "11":[6,7,8], "12":[6,7, 8],
     "13":[7,8,9], "14":[7,8,9,10], "15":[7,8,9,10], "16":[7,8,9,10], "17":[7,8,9,10], "18":[7,8,9,10], "19":[7,8,9,10], "20":[7,8,9,10], "21":[7,8,9,10]
 }
+
+ya_h3_zoom = {
+    "3":[1], "4":[1], "5":[1,2], "6":[2,3], "7":[3,4], "8":[3,4], "9":[4,5], "10":[5,6], "11":[6,7], "12":[6,7],
+    "13":[7,8], "14":[8,9], "15":[8,9], "16":[9,10], "17":[10,11], "18":[11,12], "19":[11,12], "20":[12], "21":[12]
+}
 degree_1=111 #km
 
 def generataData():
     dataSet = []
-    for i in range(0, 1000000):
+    for i in range(0, 100000):
         dataSet.append({
             "lon": random.uniform(40, 60),
             "lat": random.uniform(40, 60),
@@ -83,6 +96,7 @@ def generateClusters(dataSet, H3_zooms):
     for H3_zoom in H3_zooms:
         maxesOfH3Layers[H3_zoom] = {}
         clusters[H3_zoom]={}
+        clusters[H3_zoom]["maxLayerValue"]=0;
         for point in dataSet:
             hxgn=h3.geo_to_h3(lat=point['lat'], lng=point['lon'], resolution=H3_zoom)
             if not hxgn in clusters[H3_zoom]:
@@ -91,8 +105,11 @@ def generateClusters(dataSet, H3_zooms):
             else:
                 clusters[H3_zoom][hxgn] = clusters[H3_zoom][hxgn] + 1
             if clusters[H3_zoom][hxgn] > maxValue: maxValue = clusters[H3_zoom][hxgn]
+            if clusters[H3_zoom][hxgn] > clusters[H3_zoom]["maxLayerValue"]: clusters[H3_zoom]["maxLayerValue"] = clusters[H3_zoom][hxgn]
             maxesOfH3Layers[H3_zoom]['max']=maxesOfH3Layers[H3_zoom].get('max',0)+1 # от количества точек
         maxesOfH3Layers[H3_zoom]['colorW'] = (len(redGradient)-1) / (maxesOfH3Layers[H3_zoom]['max'])
+        maxesOfH3Layers[H3_zoom]['colorW2'] = (len(redGradient)-1) / clusters[H3_zoom]["maxLayerValue"]
+
 
 
     return clusters
@@ -201,15 +218,17 @@ def rom(resp_string):
     # len_redGradient=len(redGradient)
     # colorW=(len(redGradient)-1)/maxValue
     for polygon in polygons:
+        strokeOpacity=1
         asses = 0
         h3_zoom= polygon['h3zoom']
         fill = False;
-        colorW = maxesOfH3Layers[h3_zoom]["colorW"]
-        strokeColor = "2222ff";
+        # colorW = maxesOfH3Layers[h3_zoom]["colorW"]
+        colorW = maxesOfH3Layers[h3_zoom]["colorW2"]
+        strokeColor = blueGradient[0];
+        strokeColor = superRedGradient[0];
         strokeWidth = 1
         color = "aaaaff"
         colorI = int(asses * colorW)
-        strokeColor = blueGradient[colorI]
         if not polygon['hex'] in clusters[polygon['h3zoom']]:
             fill=False;
             if not renderAllHexs:
@@ -220,8 +239,10 @@ def rom(resp_string):
                 colorI = int(asses * colorW)
                 color= redGradient[colorI]
                 fill = True;
-            if h3_zoom == ya_h3_zoom[ya_zoom][0]:
-                strokeWidth = 5
+            if (h3_zoom == ya_h3_zoom[ya_zoom][0]) and ( not ya_h3_zoom[ya_zoom][0]==ya_h3_zoom[ya_zoom][-1]):
+                strokeWidth = 7
+                strokeColor = blueGradient[colorI]
+                strokeColor = superRedGradient[colorI]
 
         features.append({
       "type": "Feature",
@@ -243,7 +264,7 @@ def rom(resp_string):
                 "fill":  fill,
                 "strokeWidth": strokeWidth,
                 "strokeColor": strokeColor,
-                "strokeOpacity":1
+                "strokeOpacity":strokeOpacity
             }
     })
     fc2={

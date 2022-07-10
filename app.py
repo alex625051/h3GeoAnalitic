@@ -97,7 +97,6 @@ def XtoLon(x, z): #перевод пиксела ось X в долготу Lon
 
 
 def LonToX(lon, z): # перевод долготы Lon в координаты пиксела ось X
-
     l =  (lon + 180.0)/360.0*(256 * math.pow(2, z));
     return l;
 ################################################################################3
@@ -265,18 +264,11 @@ def pointToPixel(point, YmapZoom, x, y):
 
 def create_hexagons(geoJson, h3zoom=4, YmapZoom=0, x=0,y=0):
     hexagons = list(h3.polyfill(geoJson, h3zoom))
-    polylines = []
-    lat = []
-    lng = []
+    polygons=[]
     for hex in hexagons:
-        polygons = h3.h3_set_to_multi_polygon([hex], geo_json=False)
-        # flatten polygons into loops.
-        outlines = [loop for polygon in polygons for loop in polygon]
-        polyline = [outline + [outline[0]] for outline in outlines][0]
-        lat.extend(map(lambda v:v[0],polyline))
-        lng.extend(map(lambda v:v[1],polyline))
-        polylines.append(polyline)
-    polylines=map(lambda pg:list(map(lambda point:pointToPixel(point, YmapZoom,x,y),pg)),polylines)
+        polygons.append(h3.h3_set_to_multi_polygon([hex], geo_json=False))
+
+    polylines=map(lambda pg:list(map(lambda point:pointToPixel(point, YmapZoom,x,y),pg[0][0])),polygons)
     return list(polylines)
 
 
@@ -305,6 +297,10 @@ def get_png_tile(zoom=1, y=1, x=1):
 
     polygons= create_hexagons(geoJson, h3zoom=2, YmapZoom=zoom, y=y, x=x)
     polygons= polygons+create_hexagons(geoJson, h3zoom=3, YmapZoom=zoom, y=y, x=x)
+    polygons= polygons+create_hexagons(geoJson, h3zoom=4, YmapZoom=zoom, y=y, x=x)
+    polygons= polygons+create_hexagons(geoJson, h3zoom=5, YmapZoom=zoom, y=y, x=x)
+    polygons= polygons+create_hexagons(geoJson, h3zoom=6, YmapZoom=zoom, y=y, x=x)
+
 
     img = Image.new('RGBA', (256, 256), (100, 0, 0, 0))
     draw = ImageDraw.Draw(img, "RGBA")
@@ -324,78 +320,82 @@ def get_png_tile(zoom=1, y=1, x=1):
     return img_io
 
 
-# @app.route('/tiles/<int:zoom>/<int:x>/<int:y>')
-# def tiles(zoom, y, x):
-#     filename = '_path_to_tiles\\tiles\\0\\%s\\%s\\%s.png' % (zoom, x, y)
-#     png_tile=get_png_tile(zoom, y, x)
-#     return send_file(png_tile, mimetype='image/png')
-
-@app.route('/rom/<path:resp_string>')
-@crossdomain(origin="*")
-def rom(resp_string):
-    callback_id = request.args.get('callback')
-    string_arr=resp_string.split('/')
-    ya_zoom = string_arr[1]
-    coords=string_arr[0].split(',')
-    coords=list(map(lambda x: float(x),coords))
-    lu_p_arr=[coords[0], coords[1]]
-    ru_p_arr=[coords[2],coords[1]]
-    rb_p_arr=[coords[2],coords[3]]
-    lb_p_arr=[coords[0],coords[3]]
-
-    coordinates =  [
-            [
-                lu_p_arr,
-                ru_p_arr,
-                rb_p_arr,
-                lb_p_arr,
-                lu_p_arr
-            ]
-        ]
-
-    featCollection= {"type": "FeatureCollection",
-  "features": [
-
-
-  ]
-        }
-    # featCollection['features'].append(geoJson)
-    featCollection['features'].append({"type":"Feature","id":0,"geometry":{"type":"Point","coordinates":[35.6894875000,139.6917064000]},"properties":{"balloonContentHeader":"Токио","balloonContentBody":"fff","balloonContentFooter":"fff","clusterCaption":"fff","hintContent":"Токио"}},
-)
-    featCollection['features'].append({"type":  "Feature","id":4,"geometry":{"type":"Point","coordinates":[35.0,100]},"properties":{"ipAddress":"X.X.X.X","score":"1000"}})
-
-
-    fc2={
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "id": 123,
-      "geometry": {
-        "coordinates": coordinates,
-        "type": "Polygon"
-      },
-      "properties": {
-        "name": "Многоугольник 1"
-      }
-    }
-
-  ]
-}
-    ret= f'{callback_id}('+str(json.dumps(fc2))  + ')'
-    print(ret)
-    response = Response(ret, mimetype='text/xml')
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
-    response.headers.add('Access-Control-Max-Age', '1000')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-    response.headers.add('Content-type', 'text/xml')
-    return response
-
+@app.route('/tiles/<int:zoom>/<int:x>/<int:y>')
+def tiles(zoom, y, x):
+    filename = '_path_to_tiles\\tiles\\0\\%s\\%s\\%s.png' % (zoom, x, y)
+    png_tile=get_png_tile(zoom, y, x)
+    return send_file(png_tile, mimetype='image/png')
 
 @app.route('/run/')
 def run_it():
-    return send_file('index2.html')
+    return send_file('index.html')
+
+# @app.route('/rom/<path:resp_string>')
+# @crossdomain(origin="*")
+# def rom(resp_string):
+#     callback_id = request.args.get('callback')
+#     string_arr=resp_string.split('/')
+#     ya_zoom = string_arr[1]
+#     coords=string_arr[0].split(',')
+#     coords=list(map(lambda x: float(x),coords))
+#     lu_p_arr=[coords[0], coords[1]]
+#     ru_p_arr=[coords[2],coords[1]]
+#     rb_p_arr=[coords[2],coords[3]]
+#     lb_p_arr=[coords[0],coords[3]]
+#
+#     coordinates =  [
+#             [
+#                 lu_p_arr,
+#                 ru_p_arr,
+#                 rb_p_arr,
+#                 lb_p_arr,
+#                 lu_p_arr
+#             ]
+#         ]
+#
+#     featCollection= {"type": "FeatureCollection",
+#   "features": [
+#
+#
+#   ]
+#         }
+#     # featCollection['features'].append(geoJson)
+#     featCollection['features'].append({"type":"Feature","id":0,"geometry":{"type":"Point","coordinates":[35.6894875000,139.6917064000]},"properties":{"balloonContentHeader":"Токио","balloonContentBody":"fff","balloonContentFooter":"fff","clusterCaption":"fff","hintContent":"Токио"}},
+# )
+#     featCollection['features'].append({"type":  "Feature","id":4,"geometry":{"type":"Point","coordinates":[35.0,100]},"properties":{"ipAddress":"X.X.X.X","score":"1000"}})
+#
+#
+#     fc2={
+#   "type": "FeatureCollection",
+#   "features": [
+#     {
+#       "type": "Feature",
+#       "id": 123,
+#       "geometry": {
+#         "coordinates": coordinates,
+#         "type": "Polygon"
+#       },
+#       "properties": {
+#         "name": "Многоугольник 1"
+#       }
+#     }
+#
+#   ]
+# }
+#     ret= f'{callback_id}('+str(json.dumps(fc2))  + ')'
+#     print(ret)
+#     response = Response(ret, mimetype='text/xml')
+#     response.headers.add('Access-Control-Allow-Origin', '*')
+#     response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
+#     response.headers.add('Access-Control-Max-Age', '1000')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+#     response.headers.add('Content-type', 'text/xml')
+#     return response
+#
+#
+# @app.route('/run/')
+# def run_it():
+#     return send_file('index2.html')
 
 
 if __name__ == '__main__':

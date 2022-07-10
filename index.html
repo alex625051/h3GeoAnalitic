@@ -1,0 +1,40 @@
+
+
+
+
+<!--
+        Укажите свой API-ключ. Тестовый ключ НЕ БУДЕТ работать на других сайтах.
+        Получить ключ можно в Кабинете разработчика: https://developer.tech.yandex.ru/keys/
+    -->
+<script type="text/javascript" src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=60445215-6d3a-4f88-87fe-8d52b72e5bc9"></script>
+<div id="map" style='width: 100%; height: 100%;padding: 0; margin: 0;'></div>
+
+<script>
+ymaps.ready(init);
+
+function init() {
+
+    var myMap = new ymaps.Map('map', {
+            center: [55.709243, 37.500737],
+            zoom: 9,
+            controls: ['zoomControl']
+        }, {
+            // В нашем примере хотспотные данные есть только для 9 и 10 масштаба.
+            // Поэтому ограничим диапазон коэффициентов масштабирования карты.
+    
+        });
+
+
+        // URL тайлов картиночного слоя.
+        // Пример URL после подстановки -
+        // '.../hotspot_layer/images/9/tile_x=1&y=2.png'.
+        imgUrlTemplate = 'http://127.0.0.1:5000/tiles/%z/%x/%y',
+
+
+        // Создаем картиночный слой и слой активных областей.
+        imgLayer = new ymaps.Layer(imgUrlTemplate, {tileTransparent: false});
+
+    // Добавляем слои на карту.
+    myMap.layers.add(imgLayer);
+}
+</script>
