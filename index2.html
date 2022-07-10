@@ -45,5 +45,26 @@ function init()
 //          e.get('type') == 'mouseenter' ? 1 : 0
 //        );
 //    });
+
+
+	    function onObjectEvent (e) {
+        var objectId = e.get('objectId');
+        if (e.get('type') == 'mouseenter') {
+            // Метод setObjectOptions позволяет задавать опции объекта "на лету".
+            remoteObjectManager.objects.setObjectOptions(objectId, {
+                opacity: 0.7
+            });
+        } else {
+            remoteObjectManager.objects.setObjectOptions(objectId, {
+                opacity: 0.5
+            });
+        }
+    }
+	
+	
+    remoteObjectManager.objects.events.add(['mouseenter', 'mouseleave'], onObjectEvent);
+
+
+
 }
 </script>

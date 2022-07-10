@@ -9,6 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 import random
+import pandas as pd
 
 print("Starting server")
 # globals:
@@ -75,16 +76,13 @@ degree_1=111 #km
 
 def generataData():
     dataSet = []
-    for i in range(0, 100000):
+    excel=pd.read_excel('yt2.xlsx')
+    for i, row in excel.iterrows():
+        if not row['assignment_status']=='APPROVED': continue
         dataSet.append({
-            "lon": random.uniform(40, 60),
-            "lat": random.uniform(40, 60),
-            "worker_id": uuid.uuid4()
-        })
-        dataSet.append({
-            "lon": random.uniform(45, 46),
-            "lat": random.uniform(45, 46),
-            "worker_id": uuid.uuid4()
+            "lon": row['lon'],
+            "lat": row['lat'],
+            "worker_id": row['assignment_status']
         })
     return dataSet
 
