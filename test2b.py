@@ -19,7 +19,7 @@ def send_same_headers(values):
     headerValue = ','.join(values)
     headers = {'X-Cat-Variable': headerValue}
 
-    conn = http.client.HTTPConnection('127.0.0.1:7777', timeout=200)
+    conn = http.client.HTTPConnection('127.0.0.1:5000', timeout=200)
     conn.request(method='MEW', url="", body='{"foo":"foo"}', headers=headers)
     response = conn.getresponse()
     inheaders = response.getheader('X-Cat-Value')
